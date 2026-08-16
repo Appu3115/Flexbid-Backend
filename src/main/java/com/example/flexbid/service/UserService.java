@@ -124,13 +124,18 @@ public class UserService {
         evToken.setUsed(false);
 
         tokenRepo.save(evToken);
-
         try {
             sendVerificationOtpEmail(user.getEmail(), otp);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
             tokenRepo.delete(evToken);
             userRepo.delete(user);
-            return ResponseEntity.internalServerError().body("Unable to send verification email: " + e.getMessage());
+
+            return ResponseEntity
+                    .internalServerError()
+                    .body(e.getClass().getName() + " : " + e.getMessage());
         }
 
         wsNotificationService.notifyTopic("admin", Map.of(
@@ -145,6 +150,59 @@ public class UserService {
         return ResponseEntity.ok("OTP sent to your email. Please verify to complete registration.");
     }
 
+//    private void sendVerificationOtpEmail(String to, String otp) throws MessagingException {
+//        String subject = "Your FlexBid OTP for Email Verification";
+//
+//        String content = """
+//            <p>Hello,</p>
+//            <p>Your OTP for email verification is:</p>
+//
+//            <div style="padding: 10px; background-color: #f4f4f4; border: 1px dashed #999; display: inline-block; border-radius: 6px; margin: 10px 0;">
+//                <span style="font-family: monospace; font-size: 24px; letter-spacing: 3px; color: #333;">%s</span>
+//            </div>
+//
+//            <p style="margin-top: 15px;"><i>You can copy the OTP above and paste it into the app.</i></p>
+//            <p>This OTP is valid for 15 minutes.</p>
+//            <p>If you did not request this, please ignore this email.</p>
+//        """.formatted(otp);
+//
+//        MimeMessage message = mailSender.createMimeMessage();
+//        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+//        helper.setTo(to);
+//        helper.setSubject(subject);
+//        helper.setText(content, true); // HTML content
+//
+//        // Optional: Debug logs
+//        System.out.println("Sending OTP to: " + to);
+//        System.out.println("OTP: " + otp);
+//
+//        mailSender.send(message);
+//    }
+
+    private void sendVerificationOtpEmail(String to, String otp) throws MessagingException {
+
+        System.out.println("STEP 1");
+
+        String subject = "Your FlexBid OTP";
+
+        MimeMessage message = mailSender.createMimeMessage();
+
+        System.out.println("STEP 2");
+
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        System.out.println("STEP 3");
+
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText("OTP : " + otp);
+
+        System.out.println("STEP 4");
+
+        mailSender.send(message);
+
+        System.out.println("STEP 5 EMAIL SENT");
+    }
 
     private String generateOtp() {
         SecureRandom secureRandom = new SecureRandom();
@@ -212,34 +270,6 @@ public class UserService {
     }
 
 
-    private void sendVerificationOtpEmail(String to, String otp) throws MessagingException {
-        String subject = "Your FlexBid OTP for Email Verification";
-
-        String content = """
-            <p>Hello,</p>
-            <p>Your OTP for email verification is:</p>
-
-            <div style="padding: 10px; background-color: #f4f4f4; border: 1px dashed #999; display: inline-block; border-radius: 6px; margin: 10px 0;">
-                <span style="font-family: monospace; font-size: 24px; letter-spacing: 3px; color: #333;">%s</span>
-            </div>
-
-            <p style="margin-top: 15px;"><i>You can copy the OTP above and paste it into the app.</i></p>
-            <p>This OTP is valid for 15 minutes.</p>
-            <p>If you did not request this, please ignore this email.</p>
-        """.formatted(otp);
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(content, true); // HTML content
-
-        // Optional: Debug logs
-        System.out.println("Sending OTP to: " + to);
-        System.out.println("OTP: " + otp);
-
-        mailSender.send(message);
-    }
 
 
     // ✅ LOGIN
