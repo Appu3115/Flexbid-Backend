@@ -199,9 +199,17 @@ public class UserService {
 
         System.out.println("STEP 4");
 
-        mailSender.send(message);
+        try {
+            mailSender.send(message);
+            System.out.println("STEP 5 EMAIL SENT");
+        } catch (Exception e) {
+            e.printStackTrace();
 
-        System.out.println("STEP 5 EMAIL SENT");
+            System.out.println("MAIL ERROR = " + e.getClass().getName());
+            System.out.println("MESSAGE = " + e.getMessage());
+
+            throw e;
+        }
     }
 
     private String generateOtp() {
