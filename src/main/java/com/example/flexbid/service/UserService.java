@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -149,68 +150,84 @@ public class UserService {
 
         return ResponseEntity.ok("OTP sent to your email. Please verify to complete registration.");
     }
-
-//    private void sendVerificationOtpEmail(String to, String otp) throws MessagingException {
-//        String subject = "Your FlexBid OTP for Email Verification";
-//
-//        String content = """
-//            <p>Hello,</p>
-//            <p>Your OTP for email verification is:</p>
-//
-//            <div style="padding: 10px; background-color: #f4f4f4; border: 1px dashed #999; display: inline-block; border-radius: 6px; margin: 10px 0;">
-//                <span style="font-family: monospace; font-size: 24px; letter-spacing: 3px; color: #333;">%s</span>
-//            </div>
-//
-//            <p style="margin-top: 15px;"><i>You can copy the OTP above and paste it into the app.</i></p>
-//            <p>This OTP is valid for 15 minutes.</p>
-//            <p>If you did not request this, please ignore this email.</p>
-//        """.formatted(otp);
-//
-//        MimeMessage message = mailSender.createMimeMessage();
-//        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-//        helper.setTo(to);
-//        helper.setSubject(subject);
-//        helper.setText(content, true); // HTML content
-//
-//        // Optional: Debug logs
-//        System.out.println("Sending OTP to: " + to);
-//        System.out.println("OTP: " + otp);
-//
-//        mailSender.send(message);
-//    }
+    
+    
+    @Value("${spring.mail.from}")
+    private String from;
 
     private void sendVerificationOtpEmail(String to, String otp) throws MessagingException {
 
-        System.out.println("STEP 1");
+        String subject = "Your FlexBid OTP for Email Verification";
 
-        String subject = "Your FlexBid OTP";
+        String content = """
+            <p>Hello,</p>
+
+            <p>Your OTP for email verification is:</p>
+
+            <div style="padding:10px;background:#f4f4f4;
+                        border:1px dashed #999;
+                        display:inline-block;
+                        border-radius:6px;">
+
+                <span style="font-size:24px;
+                             letter-spacing:3px;
+                             font-family:monospace;">
+                    %s
+                </span>
+
+            </div>
+
+            <p>This OTP is valid for 15 minutes.</p>
+            <p>If you didn't request this, ignore this email.</p>
+            """.formatted(otp);
 
         MimeMessage message = mailSender.createMimeMessage();
 
-        System.out.println("STEP 2");
-
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        System.out.println("STEP 3");
-
+        helper.setFrom(from);        // IMPORTANT
         helper.setTo(to);
         helper.setSubject(subject);
-        helper.setText("OTP : " + otp);
+        helper.setText(content, true);
 
-        System.out.println("STEP 4");
+        System.out.println("FROM : " + from);
+        System.out.println("TO   : " + to);
 
-        try {
-            mailSender.send(message);
-            System.out.println("STEP 5 EMAIL SENT");
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            System.out.println("MAIL ERROR = " + e.getClass().getName());
-            System.out.println("MESSAGE = " + e.getMessage());
-
-            throw e;
-        }
+        mailSender.send(message);
     }
+
+//    private void sendVerificationOtpEmail(String to, String otp) throws MessagingException {
+//
+//        System.out.println("STEP 1");
+//
+//        String subject = "Your FlexBid OTP";
+//
+//        MimeMessage message = mailSender.createMimeMessage();
+//
+//        System.out.println("STEP 2");
+//
+//        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+//
+//        System.out.println("STEP 3");
+//
+//        helper.setTo(to);
+//        helper.setSubject(subject);
+//        helper.setText("OTP : " + otp);
+//
+//        System.out.println("STEP 4");
+//
+//        try {
+//            mailSender.send(message);
+//            System.out.println("STEP 5 EMAIL SENT");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//
+//            System.out.println("MAIL ERROR = " + e.getClass().getName());
+//            System.out.println("MESSAGE = " + e.getMessage());
+//
+//            throw e;
+//        }
+//    }
 
     private String generateOtp() {
         SecureRandom secureRandom = new SecureRandom();
@@ -483,6 +500,7 @@ public class UserService {
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        helper.setFrom(from);
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(content, true); // Enable HTML content

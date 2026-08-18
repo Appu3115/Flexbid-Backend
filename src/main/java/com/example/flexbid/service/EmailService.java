@@ -20,6 +20,7 @@ import jakarta.activation.DataSource;
 import jakarta.mail.util.ByteArrayDataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -36,6 +37,9 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Value("${spring.mail.from}")
+    private String from;
+    
     public void sendWinnerEmail(User user, Product product, List<ProductImage> images, Bid bid) {
         String to = user.getEmail();
         String subject = "🎉 You won the auction for " + product.getName();
@@ -66,6 +70,7 @@ public class EmailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(from);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true); // true = HTML
@@ -144,6 +149,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
+            helper.setFrom(from);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(content.toString(), true); // HTML email
